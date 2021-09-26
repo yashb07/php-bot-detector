@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Human</title>
+</head>
+<body>
+    <h1>This is the website seen by a Human</h1>
+    <h4>
+        <?php
+            $devicecheck= is_numeric(strpos(strtolower($_SERVER['HTTP_USER_AGENT']),"mobile"));
+            $devicecheck_android= is_numeric(strpos(strtolower($_SERVER['HTTP_USER_AGENT']),"android"));
+            echo $devicecheck;
+            
+            if($devicecheck==1 OR $devicecheck_android==1)
+            {
+            echo 'You are using a mobile device';
+            }
+            else{
+            echo 'You are using a browser';
+            }
+        ?>
+        <p>This is the website which can be viewed by a actual user.</p>
+    </h4>
+</body>
+</html>
