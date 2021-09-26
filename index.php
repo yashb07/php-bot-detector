@@ -1,12 +1,16 @@
 <?php
-  $botCheck = 0;
+  $botCheck = 0; // Primary boolean check for bot detection, 0 for Human users, 1 for bots. Checked at the end of the program.
   echo "Bot Check using PHP: <br>" . "-----------------------------<br>";
 
-  $user_agent = $_SERVER['HTTP_USER_AGENT'];
-  function getOS() { 
+  // 1) The first check will be done using Client Operating System.
+  $user_agent = $_SERVER['HTTP_USER_AGENT']; // Provides details about the client's browser.
+
+  // It generally returns a syntax such as 'Mozilla/5.0 (<system-information>) <platform> (<platform-details>) <extensions>'
+  // which provides us Client system info and platform details. Mozilla is displayed as it supports Firefox as well.
+  function getOS() {  // Function to obtain Client OS, if OS field returns unknown, User can be flagged as a bot.
     global $user_agent;
     $os_platform  = "Unknown OS Platform";
-    $os_array     = array(
+    $os_array     = array( // Array consisting of the many different Operating Systems.
                           '/windows nt 10/i'      =>  'Windows 10',
                           '/windows nt 6.3/i'     =>  'Windows 8.1',
                           '/windows nt 6.2/i'     =>  'Windows 8',
@@ -31,43 +35,30 @@
                           '/blackberry/i'         =>  'BlackBerry',
                           '/webos/i'              =>  'Mobile'
                     );
-    foreach ($os_array as $regex => $value)
-        if (preg_match($regex, $user_agent))
-            $os_platform = $value;
+    foreach ($os_array as $regex => $value) // Matches each value in os_array to user_agent.
+        if (preg_match($regex, $user_agent)) // preg_match performs a regular expression match.
+            $os_platform = $value;  // Value is set to os_platform.
     return $os_platform;
   }
   $user_os = getOS();
-  echo 'Operating System: ' . $user_os . '<br>';
-  if ($user_os = "")
-    $botCheck = 1;
+  echo 'Operating System: ' . $user_os . '<br>'; // Displays Client OS.
+  if ($user_os = "Unknown OS Platform")
+    $botCheck = 1; // botCheck is flagged 1 to indicate a bot browsing through our website if OS is returned unknown.
 
-  // function isDevice() {
-  //   return preg_match("/(android|avantgo|blackberry|bolt|boost|cricket|docomo
-  // |fone|hiptop|mini|mobi|palm|phone|pie|tablet|up\.browser|up\.link|webos|wos)/i"
-  // , $_SERVER["HTTP_USER_AGENT"]);
-  // }
-  // if(isDevice()){
-  //   echo "Device Check: Mobile Browser Detected<br>";
-  //   $botCheck = 0;
-  // }
-  // else {
-  //   echo "Device Check: Not using Mobile Browser<br>";
-  //   $botCheck = 0;
-  // }
-
-  $ipaddress = getenv("REMOTE_ADDR") ;
+  // 2) Check IP Address ranges for known Google and Googlebot IP's to flag a bot.
+  $ipaddress = getenv("REMOTE_ADDR") ; // Retrieves Client Remote IP Address.
   echo "Client IP Address: " . $ipaddress . "<br>";
 
-  function ipbetweenrange($needle, $start, $end) {
-    if((ip2long($needle) >= ip2long($start)) && (ip2long($needle) <= ip2long($end))) {
-      return true;
+  function ipbetweenrange($needle, $start, $end) { // Function to check if a given IP lies between a range of two IP Addresses.
+    if((ip2long($needle) >= ip2long($start)) && (ip2long($needle) <= ip2long($end))) { // ip2long() converts an IP Address into numeric instead of string to compare.
+      return true; // If lies in between, returns true.
     }
-    return false;
+    return false; // Else, returns false.
   }
   
-  $ipCheckArray = new SplFixedArray(18);
-  //Google.com Public IP Addresses ->
-  $ipCheckArray[0] = ipbetweenrange($ipaddress, '64.233.160.0', '64.233.191.255');
+  $ipCheckArray = new SplFixedArray(18); // Created a fixed array to store boolean return values from ipbetweeenrange() function.
+  //Google.com Known Public IP Addresses List ->
+  $ipCheckArray[0] = ipbetweenrange($ipaddress, '64.233.160.0', '64.233.191.255'); // First -> Client IP, Second -> Range start, Third -> Range end.
   $ipCheckArray[1] = ipbetweenrange($ipaddress, '66.102.0.0', '66.102.15.255');
   $ipCheckArray[2] = ipbetweenrange($ipaddress, '66.249.64.0', '66.249.95.255');
   $ipCheckArray[3] = ipbetweenrange($ipaddress, '72.14.192.0', '72.14.255.255');
@@ -80,37 +71,24 @@
   $ipCheckArray[10] = ipbetweenrange($ipaddress, '173.194.0.0', '173.194.255.255');
   $ipCheckArray[11] = ipbetweenrange($ipaddress, '207.126.144.0', '207.126.159.255');
   $ipCheckArray[12] = ipbetweenrange($ipaddress, '216.58.192.0', '216.58.223.255');
-  //Googlebot IP Addresses ->
+  //Googlebot Known IP Addresses ->
   $ipCheckArray[13] = ipbetweenrange($ipaddress, '64.68.90.1', '64.68.90.255');
   $ipCheckArray[14] = ipbetweenrange($ipaddress, '64.233.173.193', '64.233.173.255');
   $ipCheckArray[15] = ipbetweenrange($ipaddress, '66.249.64.1', '66.249.79.255');
   $ipCheckArray[16] = ipbetweenrange($ipaddress, '216.239.33.96', '216.239.59.128');
-  //Google.com DNS IP Addresses ->
+  //Google.com Known DNS IP Addresses ->
   $ipCheckArray[17] = ipbetweenrange($ipaddress, '8.8.8.8.8', '8.8.8.4.4');
 
-  for ($i = 0; $i<13; $i++) {
+  for ($i = 0; $i<13; $i++) { // Check for 1 in every boolean 1 or 0 in ipCheckArray
     if ($ipCheckArray[$i] == 1)
-      $botCheck = 1;
+      $botCheck = 1; // If 1 found, flag as bot.
   }
 
-
-  // function is_bot($system) {
-  //   $bot_list = array(
-  //       'Googlebot', 'Baiduspider', 'ia_archiver',
-  //       'R6_FeedFetcher', 'NetcraftSurveyAgent',
-  //       'Sogou web spider', 'bingbot', 'Yahoo! Slurp',
-  //       'facebookexternalhit', 'PrintfulBot', 'msnbot',
-  //       'Twitterbot', 'UnwindFetchor', 'urlresolver'
-  //   );
-  //   foreach($bot_list as $bl) {
-  //       if( stripos( $system, $bl ) !== false )
-  //           return true;
-  //   }
-  //   return false;
-  // }
-
-  function userAgents($USER_AGENT) {
-      $crawlers = array(
+  // 3) The third check will be done using user agents (They retrieve and present web content for end users).
+  // Essential web crawlers and bots such as Googlebot generally pass their User agent token as Googlebot and Full user agent string as
+  // 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)' making them easier to be identified as a bot.
+  function userAgents($USER_AGENT) { // Function to check User Agents to flag bots
+      $crawlers = array(  // Create associative array crawlers to map known web bots
       'Google' => 'Google',
       'MSN' => 'msnbot',
       'Rambler' => 'Rambler',
@@ -133,31 +111,29 @@
       'Scrubby robot' => 'Scrubby',
       'Facebook' => 'facebookexternalhit',
       );
-      // to get crawlers string used in function uncomment it
-      // it is better to save it in string than use implode every time
       // global $crawlers
-      $crawlers_agents = implode('|',$crawlers);
-      if (strpos($crawlers_agents, $USER_AGENT) === false)
+      $crawlers_agents = implode('|',$crawlers); // implode returns string from array.
+      if (strpos($crawlers_agents, $USER_AGENT) === false) // If user agents aren't found from array, flag false.
         return false;
       else {
-        return TRUE;
+        return TRUE; // Else true.
       }
   }
+  if (userAgents($user_agent))
+  $botCheck = 1;
 
-  // Device Window Detection
-  $tablet_browser = 0;
-  $mobile_browser = 0;
+  // 4) Device Canvas Size (Window) Detection
+  $tablet_browser = 0; // Tablet variable
+  $mobile_browser = 0; // Mobile variable
 
   if (preg_match('/(tablet|ipad|playbook)|(android(?!.*(mobi|opera mini)))/i', strtolower($_SERVER['HTTP_USER_AGENT']))) {
-      $tablet_browser++;
+      $tablet_browser++; // Check for tablet
   }
-
   if (preg_match('/(up.browser|up.link|mmp|symbian|smartphone|midp|wap|phone|android|iemobile)/i', strtolower($_SERVER['HTTP_USER_AGENT']))) {
-      $mobile_browser++;
+      $mobile_browser++; // Check for mobile
   }
-
   if ((strpos(strtolower($_SERVER['HTTP_ACCEPT']),'application/vnd.wap.xhtml+xml') > 0) or ((isset($_SERVER['HTTP_X_WAP_PROFILE']) or isset($_SERVER['HTTP_PROFILE'])))) {
-      $mobile_browser++;
+      $mobile_browser++; // Check for mobile using profiles
   }
 
   $mobile_ua = strtolower(substr($_SERVER['HTTP_USER_AGENT'], 0, 4));
@@ -173,15 +149,13 @@
       'wapr','webc','winw','winw','xda ','xda-');
 
   if (in_array($mobile_ua,$mobile_agents)) {
-      $mobile_browser++;
+      $mobile_browser++; // Check for mobiles
   }
-
   if (strpos(strtolower($_SERVER['HTTP_USER_AGENT']),'opera mini') > 0) {
       $mobile_browser++;
-      //Check for tablets on opera mini alternative headers
       $stock_ua = strtolower(isset($_SERVER['HTTP_X_OPERAMINI_PHONE_UA'])?$_SERVER['HTTP_X_OPERAMINI_PHONE_UA']:(isset($_SERVER['HTTP_DEVICE_STOCK_UA'])?$_SERVER['HTTP_DEVICE_STOCK_UA']:''));
       if (preg_match('/(tablet|ipad|playbook)|(android(?!.*mobile))/i', $stock_ua)) {
-        $tablet_browser++;
+        $tablet_browser++; //Check for tablets on opera mini alternative headers
       }
   }
 
@@ -198,7 +172,7 @@
     $botCheck = 0;
   }
 
-  // Reverse lookup on Domain Name to find number of sites hosted on shared hosting server
+  // 5) Reverse lookup on Domain Name to find number of sites hosted on shared hosting server
   $domain = gethostbyaddr($ipaddress);
   echo "Reverse DNS Lookup: " . $domain . "<br>";
 
@@ -206,7 +180,7 @@
   $hostname = gethostbyaddr($_SERVER['REMOTE_ADDR']);
     if($hostname === $_SERVER['REMOTE_ADDR']) {
         echo "The remote host name could not be resolved.<br/>\n";
-        $botCheck = 1;
+        // $botCheck = 1;
     } else {
         echo "The remote host name is: $hostname<br/>\n";
         $botCheck = 0;
@@ -221,10 +195,8 @@
         echo "The IP address for the host is: $ip_addr<br/>\n";
         $botCheck = 0;
     }
-
-  if (userAgents($user_agent))
-    $botCheck = 1;
-
+  
+  // Final bot check: If any one botCheck flags 1, the bot.html website will be shown. Otherwise, human.html website will be shown.
   if($botCheck == 1) {
     include 'bot.html';
   }
@@ -232,4 +204,36 @@
     include 'human.html';
   }
 
+  // ! Deprecated browser detector function !
+  // function isDevice() {
+  //   return preg_match("/(android|avantgo|blackberry|bolt|boost|cricket|docomo
+  // |fone|hiptop|mini|mobi|palm|phone|pie|tablet|up\.browser|up\.link|webos|wos)/i"
+  // , $_SERVER["HTTP_USER_AGENT"]);
+  // }
+  // if(isDevice()){
+  //   echo "Device Check: Mobile Browser Detected<br>";
+  //   $botCheck = 0;
+  // }
+  // else {
+  //   echo "Device Check: Not using Mobile Browser<br>";
+  //   $botCheck = 0;
+  // }
+
+  // ! Deprecated user agent function !
+  // function is_bot($system) {
+  //   $bot_list = array(
+  //       'Googlebot', 'Baiduspider', 'ia_archiver',
+  //       'R6_FeedFetcher', 'NetcraftSurveyAgent',
+  //       'Sogou web spider', 'bingbot', 'Yahoo! Slurp',
+  //       'facebookexternalhit', 'PrintfulBot', 'msnbot',
+  //       'Twitterbot', 'UnwindFetchor', 'urlresolver'
+  //   );
+  //   foreach($bot_list as $bl) {
+  //       if( stripos( $system, $bl ) !== false )
+  //           return true;
+  //   }
+  //   return false;
+  // }
+
 ?>
+
