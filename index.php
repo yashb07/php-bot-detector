@@ -198,11 +198,13 @@
   
   // Final bot check: If any one botCheck flags 1, the bot.html website will be shown. Otherwise, human.html website will be shown.
   if($botCheck == 1) {
-    include 'bot.html';
+    header("HTTP/1.1 301 Moved Permanently");
+    header('location: check/human.php');
+    exit;
   }
   else {
-    include 'human.html';
-  }
+    header('location: check/human.php');
+    ex
 
   // ! Deprecated browser detector function !
   // function isDevice() {
