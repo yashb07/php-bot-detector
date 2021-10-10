@@ -36,43 +36,6 @@
   else
     $botCheck = 1;
 
-//   // 4) Device Canvas Size (Window) Detection
-//   $tablet_browser = 0;
-//   $mobile_browser = 0;
-
-//   if (preg_match('/(tablet|ipad|playbook)|(android(?!.*(mobi|opera mini)))/i', strtolower($_SERVER['HTTP_USER_AGENT'])))
-//       $tablet_browser++;
-//   if (preg_match('/(up.browser|up.link|mmp|symbian|smartphone|midp|wap|phone|android|iemobile)/i', strtolower($_SERVER['HTTP_USER_AGENT'])))
-//       $mobile_browser++;
-//   if ((strpos(strtolower($_SERVER['HTTP_ACCEPT']),'application/vnd.wap.xhtml+xml') > 0) or ((isset($_SERVER['HTTP_X_WAP_PROFILE']) or isset($_SERVER['HTTP_PROFILE']))))
-//       $mobile_browser++;
-
-//   $mobile_ua = strtolower(substr($_SERVER['HTTP_USER_AGENT'], 0, 4));
-//   $mobile_agents = array(
-//       'w3c ','acs-','alav','alca','amoi','audi','avan','benq','bird','blac',
-//       'blaz','brew','cell','cldc','cmd-','dang','doco','eric','hipt','inno',
-//       'ipaq','java','jigs','kddi','keji','leno','lg-c','lg-d','lg-g','lge-',
-//       'maui','maxo','midp','mits','mmef','mobi','mot-','moto','mwbp','nec-',
-//       'newt','noki','palm','pana','pant','phil','play','port','prox',
-//       'qwap','sage','sams','sany','sch-','sec-','send','seri','sgh-','shar',
-//       'sie-','siem','smal','smar','sony','sph-','symb','t-mo','teli','tim-',
-//       'tosh','tsm-','upg1','upsi','vk-v','voda','wap-','wapa','wapi','wapp',
-//       'wapr','webc','winw','winw','xda ','xda-');
-
-//   if (in_array($mobile_ua,$mobile_agents)) {
-//       $mobile_browser++;
-//   }
-//   if (strpos(strtolower($_SERVER['HTTP_USER_AGENT']),'opera mini') > 0) {
-//       $mobile_browser++;
-//       $stock_ua = strtolower(isset($_SERVER['HTTP_X_OPERAMINI_PHONE_UA'])?$_SERVER['HTTP_X_OPERAMINI_PHONE_UA']:(isset($_SERVER['HTTP_DEVICE_STOCK_UA'])?$_SERVER['HTTP_DEVICE_STOCK_UA']:''));
-//       if (preg_match('/(tablet|ipad|playbook)|(android(?!.*mobile))/i', $stock_ua)) {
-//         $tablet_browser++;
-//       }
-//   }
-//   if ($tablet_browser != 0 or $mobile_browser != 0)
-//     $botCheck = 0;
-
-
 //   // 2) Check IP Address ranges for known Google and Googlebot IP's to flag a bot.
   $ipaddress = getenv("REMOTE_ADDR") ;
 
@@ -144,6 +107,49 @@
   }
   if (userAgents($userAgent))
   $botCheck = 1;
+  
+  //   // 4) Device Canvas Size (Window) Detection
+  $tablet_browser = 0;
+  $mobile_browser = 0;
+
+  if (preg_match('/(tablet|ipad|playbook)|(android(?!.*(mobi|opera mini)))/i', strtolower($userAgent)))
+      $tablet_browser++;
+  if (preg_match('/(up.browser|up.link|mmp|symbian|smartphone|midp|wap|phone|android|iemobile)/i', strtolower($userAgent)))
+      $mobile_browser++;
+
+  $mobile_ua = strtolower(substr($userAgent, 0, 4));
+  $mobile_agents = array(
+      'w3c ','acs-','alav','alca','amoi','audi','avan','benq','bird','blac',
+      'blaz','brew','cell','cldc','cmd-','dang','doco','eric','hipt','inno',
+      'ipaq','java','jigs','kddi','keji','leno','lg-c','lg-d','lg-g','lge-',
+      'maui','maxo','midp','mits','mmef','mobi','mot-','moto','mwbp','nec-',
+      'newt','noki','palm','pana','pant','phil','play','port','prox',
+      'qwap','sage','sams','sany','sch-','sec-','send','seri','sgh-','shar',
+      'sie-','siem','smal','smar','sony','sph-','symb','t-mo','teli','tim-',
+      'tosh','tsm-','upg1','upsi','vk-v','voda','wap-','wapa','wapi','wapp',
+      'wapr','webc','winw','winw','xda ','xda-');
+
+  if (in_array($mobile_ua, $mobile_agents)) {
+      $mobile_browser++;
+  }
+  if (strpos(strtolower($userAgent),'opera mini') > 0) {
+      $mobile_browser++;
+      $stock_ua = strtolower(isset($_SERVER['HTTP_X_OPERAMINI_PHONE_UA'])?$_SERVER['HTTP_X_OPERAMINI_PHONE_UA']:(isset($_SERVER['HTTP_DEVICE_STOCK_UA'])?$_SERVER['HTTP_DEVICE_STOCK_UA']:''));
+      if (preg_match('/(tablet|ipad|playbook)|(android(?!.*mobile))/i', $stock_ua)) {
+        $tablet_browser++;
+      }
+  }
+  if ($tablet_browser == 0 and $mobile_browser == 0) {
+    $botCheck = 1;
+    if ($os_platform != "Unknown OS Platform")
+        $botCheck = 0;
+  }
+  else if ($tablet_browser != 0 or $mobile_browser != 0) {
+    $botCheck = 0;
+    if (preg_match('/bot/i', strtolower($userAgent)))
+        $botCheck = 1;
+  }
+    
 
 //   // Final bot check: If any one botCheck flags 1, the bot.html website will be shown. Otherwise, human.html website will be shown.
   if($botCheck == 1) {
