@@ -71,8 +71,7 @@
 //   }
 //   if ($tablet_browser != 0 or $mobile_browser != 0)
 //     $botCheck = 0;
-//   else
-//     $botCheck = 1;
+
 
 //   // 2) Check IP Address ranges for known Google and Googlebot IP's to flag a bot.
   $ipaddress = getenv("REMOTE_ADDR") ;
